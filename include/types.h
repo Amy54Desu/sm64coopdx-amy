@@ -492,6 +492,13 @@ struct TextureInfo
 #define COOP_OBJ_FLAG_NON_SYNC    (1 << 2)
 #define COOP_OBJ_FLAG_INITIALIZED (1 << 3)
 
+#define MARIO_VISIBLE_TO_ENEMIES    (1 << 0)
+#define MARIO_VISIBLE_TO_DETECTORS  (1 << 1)
+#define MARIO_VISIBLE_TO_COLLISIONS (1 << 2)
+#define MARIO_VISIBLE_TO_SYNC       (1 << 3)
+#define MARIO_VISIBLE_TO_OTHERS     (1 << 4)
+#define MARIO_VISIBLE_TO_FRIENDLIES (1 << 5)
+
 #include "game/characters.h"
 #include "data/dynos.c.h"
 
