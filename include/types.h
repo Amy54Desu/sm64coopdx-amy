@@ -392,7 +392,7 @@ struct MarioState
     u8 specialTripleJump;
     u8 fadeWarpOpacity;
     
-    u8 visiblityFlags;
+    u8 visibilityFlags;
     u8 wasNetworkVisible;
     s16 dialogId;
     s16 prevNumStarsForDialog;

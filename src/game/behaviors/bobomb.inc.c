@@ -81,12 +81,20 @@ void bobomb_act_patrol(void) {
     o->oForwardVel = 5.0;
 
     collisionFlags = object_step();
-    struct Object* player = nearest_player_to_object(o);
-    if (player
-        && (obj_return_home_if_safe(o, o->oHomeX, o->oHomeY, o->oHomeZ, 400) == 1)
-        && (obj_check_if_facing_toward_angle(o->oMoveAngleYaw, obj_angle_to_object(o, player), 0x2000) == TRUE)) {
-        o->oBobombFuseLit = 1;
-        o->oAction = BOBOMB_ACT_CHASE_MARIO;
+    struct DistanceData* closestPlayers = nearest_players_to_object(o);
+    struct Object* player = NULL;
+    for (s16 i = 0; i < (s16)sizeof(closestPlayers); i++) {
+        struct MarioState* currState = closestPlayers[i].marioState;
+        if (currState->action == ACT_BUBBLED) { continue; }
+        if (!(currState->visibilityFlags & MARIO_VISIBLE_TO_ENEMIES)) { continue; }
+        player = currState->marioObj;
+        if (player
+            && (obj_return_home_if_safe(o, o->oHomeX, o->oHomeY, o->oHomeZ, 400) == 1)
+            && (obj_check_if_facing_toward_angle(o->oMoveAngleYaw, obj_angle_to_object(o, player), 0x2000) == TRUE)) {
+            o->oBobombFuseLit = 1;
+            o->oAction = BOBOMB_ACT_CHASE_MARIO;
+            break;
+        }
     }
     obj_check_floor_death(collisionFlags, sObjFloor);
 }
@@ -103,9 +111,22 @@ void bobomb_act_chase_mario(void) {
     if (sp1a == 5 || sp1a == 16)
         cur_obj_play_sound_2(SOUND_OBJ_BOBOMB_WALK);
 
-    struct Object* player = nearest_player_to_object(o);
-    if (player) {
-        obj_turn_toward_object(o, player, 16, 0x800);
+    struct DistanceData* closestPlayers = nearest_players_to_object(o);
+    struct Object* player = NULL;
+    for (s16 i = 0; i < (s16)sizeof(closestPlayers); i++) {
+        struct MarioState* currState = closestPlayers[i].marioState;
+        if (currState->action == ACT_BUBBLED) { continue; }
+        if (!(currState->visibilityFlags & MARIO_VISIBLE_TO_ENEMIES)) { continue; }
+        player = currState->marioObj;
+        if (player) {
+            obj_turn_toward_object(o, player, 16, 0x800);
+            break;
+        }
+    }
+
+    // found no player, return to patrol but still ignited
+    if (!player) {
+        o->oAction = BOBOMB_ACT_PATROL;
     }
     obj_check_floor_death(collisionFlags, sObjFloor);
 }
@@ -319,14 +340,16 @@ void bobomb_buddy_act_idle(void) {
         cur_obj_play_sound_2(SOUND_OBJ_BOBOMB_WALK);
     }
 
-    struct DistanceData closestPlayers[] = nearest_players_to_object(o);
-    for (s16 i = 0; i < sizeof(closestPlayers); i++) {
+    struct DistanceData* closestPlayers = nearest_players_to_object(o);
+    struct Object* player = NULL;
+    for (s16 i = 0; i < (s16)sizeof(closestPlayers); i++) {
         struct MarioState* currState = closestPlayers[i].marioState;
-        struct Object* player = currState->marioObj;
         if (currState->action == ACT_BUBBLED) { continue; }
         if (!(closestPlayers[i].marioState->visibilityFlags & MARIO_VISIBLE_TO_ENEMIES)) { continue; }
-        if (player && dist_between_objects(o, player) < 1000.0f) {
+        player = currState->marioObj;
+        if (player && closestPlayers[i].dist < 1000.0f) {
             o->oMoveAngleYaw = approach_s16_symmetric(o->oMoveAngleYaw, obj_angle_to_object(o, player), 0x140);
+            break;
         }
     }
 

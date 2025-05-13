@@ -405,7 +405,7 @@ Checks if the dialog from a specified `object` should start or continue for this
 |descriptionEnd| */
 u8 should_start_or_continue_dialog(struct MarioState* m, struct Object* object) {
     if (!m) { return FALSE; }
-    if (!(m->visiblityFlags & MARIO_VISIBLE_TO_DETECTORS)) { return FALSE; }
+    if (!(m->visibilityFlags & MARIO_VISIBLE_TO_DETECTORS)) { return FALSE; }
     if (m->playerIndex == 0) { return TRUE; }
     return (gContinueDialogFunctionObject == object);
 }

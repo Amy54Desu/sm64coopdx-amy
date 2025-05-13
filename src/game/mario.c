@@ -428,7 +428,7 @@ bool mario_can_bubble(struct MarioState* m) {
     u8 allInBubble = TRUE;
     for (s32 i = 1; i < MAX_PLAYERS; i++) {
         if (!is_player_active(&gMarioStates[i])) { continue; }
-        if (!(gMarioStates[i].visiblityFlags & MARIO_VISIBLE_TO_OTHERS)) { continue; }
+        if (!(gMarioStates[i].visibilityFlags & MARIO_VISIBLE_TO_OTHERS)) { continue; }
         if (gMarioStates[i].action != ACT_BUBBLED && gMarioStates[i].health >= 0x100) {
             allInBubble = FALSE;
             break;
@@ -2191,7 +2191,7 @@ void init_single_mario(struct MarioState* m) {
     m->framesSinceB = 0xFF;
 
     m->invincTimer = 0;
-    m->visiblityFlags = (MARIO_VISIBLE_TO_ENEMIES | MARIO_VISIBLE_TO_DETECTORS | MARIO_VISIBLE_TO_COLLISIONS | MARIO_VISIBLE_TO_SYNC | MARIO_VISIBLE_TO_OTHERS | MARIO_VISIBLE_TO_FRIENDLIES);
+    m->visibilityFlags = 0;//(MARIO_VISIBLE_TO_ENEMIES | MARIO_VISIBLE_TO_DETECTORS | MARIO_VISIBLE_TO_COLLISIONS | MARIO_VISIBLE_TO_SYNC | MARIO_VISIBLE_TO_OTHERS | MARIO_VISIBLE_TO_FRIENDLIES);
 
     if (m->cap & (SAVE_FLAG_CAP_ON_GROUND | SAVE_FLAG_CAP_ON_KLEPTO | SAVE_FLAG_CAP_ON_UKIKI | SAVE_FLAG_CAP_ON_MR_BLIZZARD)) {
         m->flags = 0;

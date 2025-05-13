@@ -64,7 +64,15 @@ static void homing_amp_appear_loop(void) {
     // In Lakitu and Mario cam, it is usually very close to the current camera position.
     // In Fixed cam, it is the point behind Mario the camera will go to when transitioning
     // to Lakitu cam. Homing amps will point themselves towards this point when appearing.
-    struct Object* player = nearest_player_to_object(o);
+    struct DistanceData* closestPlayers = nearest_players_to_object(o);
+    struct Object* player = NULL;
+    for (s16 i = 0; i < (s16)(sizeof(closestPlayers) / sizeof(closestPlayers[0])); i++) {
+        struct MarioState* currState = closestPlayers[i].marioState;
+        if (currState->action == ACT_BUBBLED) { continue; }
+        if (!(closestPlayers[i].marioState->visibilityFlags & MARIO_VISIBLE_TO_ENEMIES)) { continue; }
+        player = currState->marioObj;
+        if (player) break;
+    }
     f32 relativeTargetX = player ? player->oPosX - o->oPosX : 10000;
     f32 relativeTargetZ = player ? player->oPosZ - o->oPosZ : 10000;
     //f32 relativeTargetX = gLakituState.goalPos[0] - o->oPosX;
@@ -96,7 +104,15 @@ static void homing_amp_appear_loop(void) {
  * Chase Mario.
  */
 static void homing_amp_chase_loop(void) {
-    struct Object* player = nearest_player_to_object(o);
+    struct DistanceData* closestPlayers = nearest_players_to_object(o);
+    struct Object* player = NULL;
+    for (s16 i = 0; i < (s16)(sizeof(closestPlayers) / sizeof(closestPlayers[0])); i++) {
+        struct MarioState* currState = closestPlayers[i].marioState;
+        if (currState->action == ACT_BUBBLED) { continue; }
+        if (!(closestPlayers[i].marioState->visibilityFlags & MARIO_VISIBLE_TO_ENEMIES)) { continue; }
+        player = currState->marioObj;
+        if (player) break;
+    }
     s32 angleToPlayer = player ? obj_angle_to_object(o, player) : 0;
 
     if (!player) {
