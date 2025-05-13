@@ -319,9 +319,15 @@ void bobomb_buddy_act_idle(void) {
         cur_obj_play_sound_2(SOUND_OBJ_BOBOMB_WALK);
     }
 
-    struct Object* player = nearest_player_to_object(o);
-    if (player && dist_between_objects(o, player) < 1000.0f) {
-        o->oMoveAngleYaw = approach_s16_symmetric(o->oMoveAngleYaw, obj_angle_to_object(o, player), 0x140);
+    struct DistanceData closestPlayers[] = nearest_players_to_object(o);
+    for (s16 i = 0; i < sizeof(closestPlayers); i++) {
+        struct MarioState* currState = closestPlayers[i].marioState;
+        struct Object* player = currState->marioObj;
+        if (currState->action == ACT_BUBBLED) { continue; }
+        if (!(closestPlayers[i].marioState->visibilityFlags & MARIO_VISIBLE_TO_ENEMIES)) { continue; }
+        if (player && dist_between_objects(o, player) < 1000.0f) {
+            o->oMoveAngleYaw = approach_s16_symmetric(o->oMoveAngleYaw, obj_angle_to_object(o, player), 0x140);
+        }
     }
 
     if (o->oInteractStatus == INT_STATUS_INTERACTED) {

@@ -77,6 +77,14 @@ s16 sPrevCheckMarioRoom = 0;
  */
 s8 sYoshiDead = FALSE;
 
+/**
+ * Helper struct for the nearest players array
+ */
+struct DistanceData {
+    float dist;
+    struct MarioState *marioState;
+};
+
 /* |description|Resets Yoshi as being alive|descriptionEnd| */
 void set_yoshi_as_not_dead(void) {
     sYoshiDead = FALSE;
@@ -506,7 +514,7 @@ void obj_move_xyz_using_fvel_and_yaw(struct Object *obj) {
 s8 is_point_within_radius_of_mario(f32 x, f32 y, f32 z, s32 dist) {
     for (s32 i = 0; i < MAX_PLAYERS; i++) {
         if (!is_player_active(&gMarioStates[i])) { continue; }
-        if (!(gMarioStates[i].visibleToEnemies & MARIO_VISIBLE_TO_DETECTORS)) { continue; }
+        if (!(gMarioStates[i].visiblityFlags & MARIO_VISIBLE_TO_DETECTORS)) { continue; }
         struct Object* player = gMarioStates[i].marioObj;
         if (!player) { continue; }
         f32 mGfxX = player->header.gfx.pos[0];
@@ -597,7 +605,7 @@ struct MarioState* nearest_mario_state_to_object(struct Object *obj) {
     for (s32 i = 0; i < MAX_PLAYERS; i++) {
         if (!gMarioStates[i].marioObj) { continue; }
         if (gMarioStates[i].marioObj == obj) { continue; }
-        if (!(gMarioStates[i].visibleToEnemies & MARIO_VISIBLE_TO_DETECTORS)) { continue; }
+        if (!(gMarioStates[i].visiblityFlags & MARIO_VISIBLE_TO_DETECTORS)) { continue; }
         if (!is_player_active(&gMarioStates[i])) { continue; }
         float dist = dist_between_objects(obj, gMarioStates[i].marioObj);
         if (nearest == NULL || dist < nearestDist) {
@@ -636,6 +644,35 @@ struct Object* nearest_player_to_object(struct Object *obj) {
     return nearest->marioObj;
 }
 
+/* |description|Returns a table of players (Mario Object) ordered by who is closer to `obj`|descriptionEnd */
+struct DistanceData nearest_players_to_object(struct Object *obj) {
+    if (!obj) { return NULL; }
+    struct DistanceData playerData[MAX_PLAYERS];
+    for (s16 i = 0; i < MAX_PLAYERS; i++) {
+        struct MarioState currMario = gMarioStates[i];
+        float dist = -1;
+        if (currMario.marioObj && currMario.marioObj != obj && is_player_active(&currMario)) {
+            dist = dist_between_objects(obj, currMario->marioObj);
+        }
+        playerData[i].dist = dist;
+        playerData[i].marioState = &currMario;
+    }
+
+    // sort these using https://www.geeksforgeeks.org/selection-sort-algorithm-2/
+    for (s16 i = 0; i < MAX_PLAYERS - 1; i++) {
+        int min_idx = i;
+        for (s16 j = i + 1; j < MAX_PLAYERS; j++) {
+            if (playerData[j].dist < playerData[min_idx].dist && playerData[j].dist != -1) {
+                min_idx = j;
+            }
+        }
+        struct DistanceData temp = playerData[i];
+        playerData[i] = playerData[min_idx];
+        playerData[min_idx] = temp;
+    }
+    return playerData;
+}
+
 /* |description|Gets the nearest interacting Mario to `obj`|descriptionEnd| */
 struct MarioState *nearest_interacting_mario_state_to_object(struct Object *obj) {
     if (!obj) { return NULL; }
@@ -646,7 +683,7 @@ struct MarioState *nearest_interacting_mario_state_to_object(struct Object *obj)
         if (!gMarioStates[i].marioObj) { continue; }
         if (gMarioStates[i].marioObj == obj) { continue; }
         if (gMarioStates[i].interactObj != obj) { continue; }
-        if (!(gMarioStates[i].visibleToEnemies & MARIO_VISIBLE_TO_DETECTORS)) { continue; }
+        if (!(gMarioStates[i].visiblityFlags & MARIO_VISIBLE_TO_DETECTORS)) { continue; }
         if (!is_player_active(&gMarioStates[i])) { continue; }
         float dist = dist_between_objects(obj, gMarioStates[i].marioObj);
         if (nearest == NULL || dist < nearestDist) {
