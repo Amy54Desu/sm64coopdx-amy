@@ -1332,6 +1332,9 @@ cur_obj_update_begin:;
     // Calculate the distance from the object to Mario.
     if (objFlags & OBJ_FLAG_COMPUTE_DIST_TO_MARIO) {
         gCurrentObject->oDistanceToMario = dist_between_objects(gCurrentObject, gMarioObject);
+        if (gMarioState->visibilityFlags & MARIO_VISIBLE_TO_COLLISIONS) {
+            gCurrentObject->oColDistanceToMario = dist_between_objects(gCurrentObject, gMarioObject)
+        }
         distanceFromMario = gCurrentObject->oDistanceToMario;
     } else {
         distanceFromMario = 0.0f;

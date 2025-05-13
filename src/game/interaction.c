@@ -2475,7 +2475,7 @@ void check_lava_boost(struct MarioState *m) {
 
 void pss_begin_slide(UNUSED struct MarioState *m) {
     if (!m) { return; }
-    if (!(m->visibleToEnemies & MARIO_VISIBLE_TO_FRIENDLIES)) { return; }
+    if (!(m->visiblityFlags & MARIO_VISIBLE_TO_FRIENDLIES)) { return; }
     if (!(gHudDisplay.flags & HUD_DISPLAY_FLAG_TIMER)) {
         level_control_timer(TIMER_CONTROL_SHOW);
         level_control_timer(TIMER_CONTROL_START);
